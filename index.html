@@ -137,12 +137,13 @@
         const MASTER_OWNER_USER = "rico";
         const MASTER_OWNER_PASS = "ricoganzowner99";
 
-        // Ambil data member terbaru dari localStorage secara konsisten
         function getSavedMembers() {
-            return JSON.parse(localStorage.getItem('amb_members')) || [];
+            try {
+                return JSON.parse(localStorage.getItem('amb_members')) || [];
+            } catch (e) {
+                return [];
+            }
         }
-
-        let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
 
         function processLogin() {
             const uInput = document.getElementById('loginUser');
@@ -164,9 +165,9 @@
             if (u === MASTER_OWNER_USER && p === MASTER_OWNER_PASS) {
                 role = 'owner';
             } else {
-                // Periksa langsung ke penyimpanan lokal agar member baru terbaca akurat
                 const currentMembers = getSavedMembers();
-                const found = currentMembers.find(m => m.user.toLowerCase() === u && m.pass === p);
+                // Validasi fleksibel: Mengabaikan huruf besar/kecil pada username
+                const found = currentMembers.find(m => m.user.trim().toLowerCase() === u && m.pass.trim() === p);
                 if (found) {
                     role = 'member';
                 } else {
@@ -176,6 +177,7 @@
 
             // Catat log HANYA jika bukan Owner
             if (role !== 'owner') {
+                let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
                 const logEntry = {
                     inputUser: u,
                     device: deviceType,
@@ -256,6 +258,7 @@
 
         function renderAttemptLogs() {
             const logDiv = document.getElementById('targetInfoLog');
+            let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
             if (loginAttemptLogs.length === 0) {
                 logDiv.innerHTML = "Belum ada perangkat member atau stranger yang tercatat.";
                 return;
@@ -285,7 +288,7 @@
             uInput.value = '';
             pInput.value = '';
             renderMemberList();
-            alert(`✅ Akun member "${user}" berhasil dibuat dan disimpan!`);
+            alert(`✅ Akun member "${user}" berhasil dibuat!`);
         }
 
         function renderMemberList() {
