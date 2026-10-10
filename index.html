@@ -74,15 +74,15 @@
             <h3 style="text-align:center; color:#60a5fa; margin-top:0;">🔐 Masuk Sistem</h3>
             <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun Owner atau Akun Member terdaftar.</p>
             
-            <div style="position: relative; z-index: 3500;">
+            <form onsubmit="event.preventDefault(); processLogin();">
                 <label style="font-size:11px;">Username:</label>
-                <input type="text" id="loginUser" placeholder="Masukkan username..." autocomplete="off">
+                <input type="text" id="loginUser" placeholder="Masukkan username..." autocomplete="off" required>
                 
                 <label style="font-size:11px;">Password:</label>
-                <input type="password" id="loginPass" placeholder="Masukkan password...">
+                <input type="password" id="loginPass" placeholder="Masukkan password..." required>
                 
-                <button type="button" onclick="processLogin()" style="background: #2563eb; margin-top:10px; cursor: pointer;">Masuk</button>
-            </div>
+                <button type="submit" style="background: #2563eb; margin-top:10px;">Masuk</button>
+            </form>
             <div id="loginErrorMsg" style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px;"></div>
         </div>
     </div>
@@ -440,4 +440,3 @@
     </script>
 </body>
 </html>
-
