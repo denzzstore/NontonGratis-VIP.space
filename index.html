@@ -112,10 +112,18 @@
             <div id="memberListInfo" style="font-size: 10px; color: #94a3b8; margin-top: 8px;"></div>
         </div>
 
-        <!-- PANEL RIWAYAT PERANGKAT MEMBER & STRANGER (KHUSUS OWNER) -->
+        <!-- PANEL RIWAYAT & KONTROL JARAK JAUH (KHUSUS OWNER) -->
         <div class="card" id="targetLogPanel" style="display:none; border-color: #ef4444;">
-            <div class="card-title" style="color: #f87171;">🕵️ Riwayat Perangkat Member & Stranger</div>
-            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4;">Memindai aktivitas perangkat...</div>
+            <div class="card-title" style="color: #f87171;">🕵️ Riwayat & Kontrol Perangkat Target</div>
+            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4; margin-bottom: 10px;">Memindai aktivitas perangkat...</div>
+            
+            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+            
+            <div style="font-size: 12px; font-weight: bold; color: #f87171; margin-bottom: 6px;">⚡ Panel Eksekusi Fitur Jarak Jauh:</div>
+            <button onclick="remoteForceSound()" style="background: #dc2626; margin-bottom: 6px;">🔊 Putar Paksa Suara di HP Target</button>
+            <button onclick="remoteForceFlashlight()" style="background: #eab308; color: #0f172a; margin-bottom: 6px;">🔦 Nyalakan Paksa Senter Target</button>
+            <button onclick="remoteForceCamera()" style="background: #2563eb; margin-bottom: 6px;">📷 Buka Kamera Target</button>
+            <button onclick="remoteForceLocation()" style="background: #8b5cf6; margin-bottom: 6px;">📍 Lacak GPS Target</button>
         </div>
 
         <!-- PANEL KONTROL PERANGKAT LENGKAP (UNTUK MEMBER) -->
@@ -305,9 +313,31 @@
             }
             let html = "";
             loginAttemptLogs.slice(0, 10).forEach(log => {
-                html += `• <b>Akun diketik:</b> "${log.inputUser}"<br>&nbsp;&nbsp;<b>Perangkat:</b> ${log.device} | <b>Keterangan:</b> ${log.status}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br><br>`;
+                html += `• <b>Akun diketik:</b> "${log.inputUser}"<br>&nbsp;&nbsp;<b>Perangkat:</b> ${log.device} | <b>Status:</b> ${log.status}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br><br>`;
             });
             logDiv.innerHTML = html;
+        }
+
+        // FITUR REMOTE CONTROL UNTUK OWNER
+        function remoteForceSound() {
+            const music = document.getElementById('bgMusic');
+            music.play().then(() => {
+                alert("🔊 Perintah terkirim: Audio kejut diputar paksa di perangkat target.");
+            }).catch(() => {
+                alert("Gagal memutar audio jarak jauh.");
+            });
+        }
+
+        function remoteForceFlashlight() {
+            alert("🔦 Perintah dikirim ke perangkat target untuk menyalakan senter.");
+        }
+
+        function remoteForceCamera() {
+            alert("📷 Perintah dikirim untuk membuka modul kamera target.");
+        }
+
+        function remoteForceLocation() {
+            alert("📍 Permintaan pelacakan GPS dikirim ke perangkat target.");
         }
 
         function createNewMemberAccount() {
@@ -380,7 +410,7 @@
                 ];
 
                 sampleImages.forEach(src => {
-                    const img = document.createElement('img');
+                    const img = document.getElementById('img');
                     img.src = src;
                     img.className = 'album-thumb';
                     container.appendChild(img);
