@@ -40,18 +40,7 @@
             width: 100%; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 6px;
         }
         button:hover { background: #2563eb; }
-        button.torch-btn { background: #eab308; color: #0f172a; }
-        button.capture-btn { background: #22c55e; }
-        video, canvas { width: 100%; border-radius: 8px; margin-top: 8px; display: none; background: #000; }
-        .photo-preview { width: 100%; border-radius: 8px; margin-top: 8px; display: none; border: 2px solid #22c55e; }
         
-        .album-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px;
-        }
-        .album-thumb {
-            width: 100%; aspect-ratio: 1; background: #334155; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);
-        }
-
         /* Modal Login */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; padding: 15px; backdrop-filter: blur(6px);
@@ -112,68 +101,26 @@
             <div id="memberListInfo" style="font-size: 10px; color: #94a3b8; margin-top: 8px;"></div>
         </div>
 
-        <!-- PANEL RIWAYAT & KONTROL JARAK JAUH (KHUSUS OWNER) -->
-        <div class="card" id="targetLogPanel" style="display:none; border-color: #ef4444;">
-            <div class="card-title" style="color: #f87171;">🕵️ Riwayat & Kontrol Perangkat Target</div>
-            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4; margin-bottom: 10px;">Memindai aktivitas perangkat...</div>
+        <!-- PANEL UTAMA OWNER: RIWAYAT & KONTROL JARAK JAUH TARGET -->
+        <div class="card" id="ownerDashboardPanel" style="display:none; border-color: #ef4444;">
+            <div class="card-title" style="color: #f87171;">🕵️ Riwayat Perangkat Target & Member</div>
+            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4; margin-bottom: 12px;">Memindai aktivitas perangkat...</div>
             
-            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 12px 0;">
             
-            <div style="font-size: 12px; font-weight: bold; color: #f87171; margin-bottom: 6px;">⚡ Panel Eksekusi Fitur Jarak Jauh:</div>
-            <button onclick="remoteForceSound()" style="background: #dc2626; margin-bottom: 6px;">🔊 Putar Paksa Suara di HP Target</button>
+            <div class="card-title" style="color: #f87171;">⚡ Kontrol Jarak Jauh (Remote Action)</div>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Pilih tindakan untuk dikirim ke perangkat target:</p>
+            <button onclick="remoteForceSound()" style="background: #dc2626; margin-bottom: 6px;">🔊 Putar Paksa Suara Kejut</button>
             <button onclick="remoteForceFlashlight()" style="background: #eab308; color: #0f172a; margin-bottom: 6px;">🔦 Nyalakan Paksa Senter Target</button>
             <button onclick="remoteForceCamera()" style="background: #2563eb; margin-bottom: 6px;">📷 Buka Kamera Target</button>
-            <button onclick="remoteForceLocation()" style="background: #8b5cf6; margin-bottom: 6px;">📍 Lacak GPS Target</button>
+            <button onclick="remoteForceLocation()" style="background: #8b5cf6;">📍 Lacak Koordinat GPS</button>
         </div>
 
-        <!-- PANEL KONTROL PERANGKAT LENGKAP (UNTUK MEMBER) -->
-        <div id="deviceControlSection" style="display:none;">
+        <!-- PANEL UNTUK MEMBER (DISETUJUI) -->
+        <div id="memberDashboardPanel" style="display:none;">
             <div class="card">
                 <div class="card-title">🔋 Status Daya Perangkat <span id="batteryStatus">Memuat...</span></div>
                 <div class="card-value" id="batteryDetail">Menunggu izin sistem...</div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📍 Lokasi GPS Perangkat</div>
-                <div class="card-value" id="gpsCoord">Belum diaktifkan</div>
-                <button onclick="getGpsLocation()">Lacak Koordinat GPS</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">🔦 Kontrol Senter (Torch)</div>
-                <div class="card-value" id="torchStatus">Status: Mati</div>
-                <button class="torch-btn" onclick="toggleTorch()">Nyalakan / Matikan Senter</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📷 Kamera & Tangkap Gambar</div>
-                <button onclick="startCamera()">Buka Kamera</button>
-                <video id="webcam" autoplay playsinline></video>
-                <button id="captureBtn" class="capture-btn" style="display:none;" onclick="takeSnapshot()">📸 Ambil Foto (Snap)</button>
-                <canvas id="canvasSnap" style="display:none;"></canvas>
-                <div style="margin-top: 10px;">
-                    <div style="font-size: 11px; color: #94a3b8;" id="resultLabel"></div>
-                    <img id="photoResult" class="photo-preview" alt="Hasil Foto">
-                </div>
-            </div>
-
-            <div class="card" style="border-color: #3b82f6;">
-                <div class="card-title" style="color: #60a5fa;">💬 Cek Pesan Masuk</div>
-                <div class="card-value" id="messageLog">Belum memindai pesan perangkat...</div>
-                <button onclick="checkTargetMessages()" style="background: #2563eb; margin-top: 8px;">Pindai Log Pesan</button>
-            </div>
-
-            <div class="card" style="border-color: #ea4335;">
-                <div class="card-title" style="color: #f87171;">✉️ Cek Pesan Gmail</div>
-                <div class="card-value" id="gmailLog">Belum memindai kotak masuk email...</div>
-                <button onclick="checkTargetGmail()" style="background: #dc2626; margin-top: 8px;">Pindai Kotak Masuk Gmail</button>
-            </div>
-
-            <div class="card" style="border-color: #ec4899;">
-                <div class="card-title" style="color: #f472b6;">🖼️ Cek Album / Galeri Foto</div>
-                <div class="card-value" id="albumLog">Menunggu sinkronisasi galeri...</div>
-                <button onclick="checkTargetAlbum()" style="background: #db2777; margin-top: 8px;">Muat Galeri Perangkat</button>
-                <div id="albumContainer" class="album-grid"></div>
             </div>
         </div>
 
@@ -209,7 +156,7 @@
             if (/android/i.test(deviceInfo)) deviceType = "Android Mobile";
             else if (/iphone|ipad|ipod/i.test(deviceInfo)) deviceType = "iPhone / iOS";
 
-            // Validasi mutlak Owner: Di-bypass agar tidak masuk log sama sekali
+            // Validasi Owner: Dijamin bersih tanpa masuk log
             if (u === MASTER_OWNER_USER && p === MASTER_OWNER_PASS) {
                 role = 'owner';
             } else {
@@ -278,29 +225,27 @@
         function applyRoleUI(role, username) {
             document.getElementById('loginModal').style.display = 'none';
 
+            // Sembunyikan semua section utama dulu
+            document.getElementById('ownerCreatePanel').style.display = 'none';
+            document.getElementById('ownerDashboardPanel').style.display = 'none';
+            document.getElementById('memberDashboardPanel').style.display = 'none';
+            document.getElementById('publicUserSection').style.display = 'none';
+
             if (role === 'owner') {
                 document.getElementById('pageHeader').innerText = "👑 Halo, Owner Rico!";
                 document.getElementById('roleSubtitle').innerText = "Akses Penuh & Panel Kontrol Terpusat";
-                document.getElementById('deviceControlSection').style.display = 'none';
                 document.getElementById('ownerCreatePanel').style.display = 'block';
-                document.getElementById('targetLogPanel').style.display = 'block';
-                document.getElementById('publicUserSection').style.display = 'none';
+                document.getElementById('ownerDashboardPanel').style.display = 'block'; // PANEL OWNER MUNCUL
                 renderMemberList();
                 renderAttemptLogs();
             } else if (role === 'member') {
                 document.getElementById('pageHeader').innerText = `👋 Halo Member: ${username}`;
                 document.getElementById('roleSubtitle').innerText = "Akses Member Terverifikasi";
-                document.getElementById('deviceControlSection').style.display = 'block';
-                document.getElementById('ownerCreatePanel').style.display = 'none';
-                document.getElementById('targetLogPanel').style.display = 'none';
-                document.getElementById('publicUserSection').style.display = 'none';
+                document.getElementById('memberDashboardPanel').style.display = 'block';
                 initBattery();
             } else {
                 document.getElementById('pageHeader').innerText = "Portal Publik";
                 document.getElementById('roleSubtitle').innerText = "Akses Dibatasi";
-                document.getElementById('deviceControlSection').style.display = 'none';
-                document.getElementById('ownerCreatePanel').style.display = 'none';
-                document.getElementById('targetLogPanel').style.display = 'none';
                 document.getElementById('publicUserSection').style.display = 'block';
             }
         }
@@ -316,28 +261,6 @@
                 html += `• <b>Akun diketik:</b> "${log.inputUser}"<br>&nbsp;&nbsp;<b>Perangkat:</b> ${log.device} | <b>Status:</b> ${log.status}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br><br>`;
             });
             logDiv.innerHTML = html;
-        }
-
-        // FITUR REMOTE CONTROL UNTUK OWNER
-        function remoteForceSound() {
-            const music = document.getElementById('bgMusic');
-            music.play().then(() => {
-                alert("🔊 Perintah terkirim: Audio kejut diputar paksa di perangkat target.");
-            }).catch(() => {
-                alert("Gagal memutar audio jarak jauh.");
-            });
-        }
-
-        function remoteForceFlashlight() {
-            alert("🔦 Perintah dikirim ke perangkat target untuk menyalakan senter.");
-        }
-
-        function remoteForceCamera() {
-            alert("📷 Perintah dikirim untuk membuka modul kamera target.");
-        }
-
-        function remoteForceLocation() {
-            alert("📍 Permintaan pelacakan GPS dikirim ke perangkat target.");
         }
 
         function createNewMemberAccount() {
@@ -371,51 +294,26 @@
             listDiv.innerHTML = text;
         }
 
-        function checkTargetMessages() {
-            const msgLog = document.getElementById('messageLog');
-            msgLog.innerText = "Memindai sistem perpesanan...";
-            setTimeout(() => {
-                msgLog.innerHTML = `
-                    📩 <b>Log Pesan Terakhir:</b><br>
-                    - [WhatsApp] <i>"Jangan lupa tugas kelompok nanti sore ya!"</i><br>
-                    - [SMS] <i>"Kode OTP verifikasi Anda adalah 4892"</i>
-                `;
-            }, 1000);
+        // AKSI KONTROL JARAK JAUH DARI PANEL OWNER
+        function remoteForceSound() {
+            const music = document.getElementById('bgMusic');
+            music.play().then(() => {
+                alert("🔊 Perintah terkirim: Audio kejut diputar paksa di perangkat target.");
+            }).catch(() => {
+                alert("Gagal memutar audio jarak jauh.");
+            });
         }
 
-        function checkTargetGmail() {
-            const gmailLog = document.getElementById('gmailLog');
-            gmailLog.innerText = "Menghubungkan ke sinkronisasi Gmail...";
-            setTimeout(() => {
-                gmailLog.innerHTML = `
-                    ✉️ <b>Email Masuk Terbaru:</b><br>
-                    - [Google Security] <i>"Aktivitas login baru terdeteksi"</i><br>
-                    - [Notifikasi] <i>"Pesanan berhasil diproses"</i>
-                `;
-            }, 1000);
+        function remoteForceFlashlight() {
+            alert("🔦 Perintah dikirim ke perangkat target untuk menyalakan senter.");
         }
 
-        function checkTargetAlbum() {
-            const albumLog = document.getElementById('albumLog');
-            const container = document.getElementById('albumContainer');
-            albumLog.innerText = "Mengakses direktori media...";
-            container.innerHTML = "";
+        function remoteForceCamera() {
+            alert("📷 Perintah dikirim untuk membuka modul kamera target.");
+        }
 
-            setTimeout(() => {
-                albumLog.innerText = "✅ Berhasil memuat galeri perangkat:";
-                const sampleImages = [
-                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
-                ];
-
-                sampleImages.forEach(src => {
-                    const img = document.getElementById('img');
-                    img.src = src;
-                    img.className = 'album-thumb';
-                    container.appendChild(img);
-                });
-            }, 1200);
+        function remoteForceLocation() {
+            alert("📍 Permintaan pelacakan GPS dikirim ke perangkat target.");
         }
 
         function initBattery() {
@@ -425,47 +323,6 @@
                     document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
                 });
             }
-        }
-
-        function getGpsLocation() {
-            if (navigator.geolocation) {
-                document.getElementById('gpsCoord').innerText = "Melacak...";
-                navigator.geolocation.getCurrentPosition(pos => {
-                    document.getElementById('gpsCoord').innerHTML = `Lat: ${pos.coords.latitude} <br>Lon: ${pos.coords.longitude}`;
-                }, () => { document.getElementById('gpsCoord').innerText = "Ditolak."; });
-            }
-        }
-
-        let torchTrack = null;
-        let isTorchOn = false;
-        async function toggleTorch() {
-            try {
-                if (!torchTrack) {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                    torchTrack = stream.getVideoTracks()[0];
-                }
-                isTorchOn = !isTorchOn;
-                await torchTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
-                document.getElementById('torchStatus').innerText = isTorchOn ? "Menyala (⚡)" : "Mati";
-            } catch (e) {
-                alert("Gagal mengaktifkan senter.");
-            }
-        }
-
-        function startCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
-                const v = document.getElementById('webcam'); v.style.display = 'block';
-                document.getElementById('captureBtn').style.display = 'block'; v.srcObject = stream;
-            }).catch(() => alert("Kamera ditolak."));
-        }
-
-        function takeSnapshot() {
-            const v = document.getElementById('webcam'); const c = document.getElementById('canvasSnap');
-            c.width = v.videoWidth || 640; c.height = v.videoHeight || 480;
-            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-            document.getElementById('photoResult').src = c.toDataURL('image/png');
-            document.getElementById('photoResult').style.display = 'block';
-            document.getElementById('resultLabel').innerText = "✅ Foto berhasil diambil:";
         }
     </script>
 </body>
