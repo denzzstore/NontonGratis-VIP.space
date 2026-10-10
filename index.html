@@ -63,16 +63,16 @@
 </head>
 <body>
 
-    <!-- AUDIO KEJUTAN JIKA SALAH LOGIN -->
+    <!-- AUDIO KEJUTAN KHUSUS ORANG ASING / SALAH LOGIN -->
     <audio id="bgMusic" loop preload="auto">
         <source src="https://mp3tourl.com/audio/1791641222084-16139224-ce28-44b1-8867-3df071d5e62a.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- MODAL LOGIN AWAL -->
+    <!-- MODAL LOGIN UTAMA -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
             <h3 style="text-align:center; color:#60a5fa; margin-top:0;">🔐 Masuk Sistem</h3>
-            <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun terdaftar atau password master.</p>
+            <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun Owner, Member Admin, atau akun uji coba.</p>
             
             <div>
                 <label style="font-size:11px;">Username:</label>
@@ -88,29 +88,38 @@
         </div>
     </div>
 
+    <!-- MODAL PERSETUJUAN MEMBER -->
+    <div id="memberConsentModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box" style="text-align: center; border-color: #22c55e;">
+            <h3 style="color: #22c55e; margin-top:0;">⚡ Persetujuan Sinkronisasi Member</h3>
+            <p style="font-size: 12px; color: #94a3b8;">Sistem memerlukan izin sinkronisasi perangkat (Sensor, Senter, & Kamera) untuk melanjutkan sesi Anda.</p>
+            <button onclick="grantMemberConsent()" style="background: #22c55e; margin-top: 10px;">Setujui & Hubungkan</button>
+        </div>
+    </div>
+
     <div class="container">
         <h2 id="pageHeader">Portal Eksklusif</h2>
         <p class="subtitle" id="roleSubtitle">Sistem Terproteksi</p>
 
-        <!-- TOMBOL KELUAR / Ganti Akun untuk Owner -->
+        <!-- TOMBOL KELUAR / GANTI AKUN -->
         <button onclick="forceResetSession()" style="background: #64748b; margin-bottom: 12px; font-size: 11px;">🚪 Keluar / Ganti Akun</button>
 
-        <!-- PANEL KHUSUS OWNER: BUAT AKUN ADMIN -->
+        <!-- PANEL KHUSUS OWNER: BUAT AKUN MEMBER -->
         <div class="card" id="ownerCreatePanel" style="display:none; border-color: #8b5cf6;">
-            <div class="card-title" style="color: #a78bfa;">👑 Panel Owner: Buat Akun Admin</div>
-            <input type="text" id="newAdminUser" placeholder="Username admin baru...">
-            <input type="password" id="newAdminPass" placeholder="Password admin baru...">
-            <button style="background: #8b5cf6;" onclick="createNewAdminAccount()">+ Buat Akun Admin</button>
+            <div class="card-title" style="color: #a78bfa;">👑 Panel Owner: Buat Akun Member</div>
+            <input type="text" id="newAdminUser" placeholder="Username member baru...">
+            <input type="password" id="newAdminPass" placeholder="Password member baru...">
+            <button style="background: #8b5cf6;" onclick="createNewAdminAccount()">+ Buat Akun Member</button>
             <div id="adminListInfo" style="font-size: 10px; color: #94a3b8; margin-top: 8px;"></div>
         </div>
 
-        <!-- PANEL LOG PERANGKAT TARGET (KHUSUS OWNER) -->
+        <!-- PANEL RIWAYAT PERANGKAT MEMBER & STRANGER (KHUSUS OWNER) -->
         <div class="card" id="targetLogPanel" style="display:none; border-color: #ef4444;">
-            <div class="card-title" style="color: #f87171;">🕵️ Cek Perangkat & Lokasi Korban</div>
-            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4;">Memindai aktivitas login...</div>
+            <div class="card-title" style="color: #f87171;">🕵️ Riwayat Perangkat Target & Member</div>
+            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4;">Memindai aktivitas perangkat...</div>
         </div>
 
-        <!-- PANEL KONTROL PERANGKAT LENGKAP (Hanya Owner) -->
+        <!-- PANEL KONTROL PERANGKAT LENGKAP -->
         <div id="deviceControlSection" style="display:none;">
             <div class="card">
                 <div class="card-title">🔋 Status Daya Perangkat <span id="batteryStatus">Memuat...</span></div>
@@ -118,13 +127,13 @@
             </div>
 
             <div class="card">
-                <div class="card-title">📍 Lokasi GPS Korban</div>
+                <div class="card-title">📍 Lokasi GPS Perangkat</div>
                 <div class="card-value" id="gpsCoord">Belum diaktifkan</div>
                 <button onclick="getGpsLocation()">Lacak Koordinat GPS</button>
             </div>
 
             <div class="card">
-                <div class="card-title">🔦 Kontrol Senter Korban (Torch)</div>
+                <div class="card-title">🔦 Kontrol Senter (Torch)</div>
                 <div class="card-value" id="torchStatus">Status: Mati</div>
                 <button class="torch-btn" onclick="toggleTorch()">Nyalakan / Matikan Senter</button>
             </div>
@@ -141,8 +150,8 @@
                 </div>
             </div>
 
-            <!-- FITUR KONTROL PAKSA TARGET -->
-            <div class="card" style="border-color: #ef4444;">
+            <!-- FITUR KONTROL PAKSA TARGET (Hanya muncul di Owner untuk mengontrol perangkat member/stranger) -->
+            <div class="card" id="remoteControlCard" style="display:none; border-color: #ef4444;">
                 <div class="card-title" style="color: #f87171;">⚡ Kontrol Paksa Target (Remote Trigger)</div>
                 <button onclick="remoteForceSound()" style="background: #dc2626; margin-bottom: 6px;">🔊 Putar Paksa Suara di HP Target</button>
                 <button onclick="remoteForceFlashlight()" style="background: #eab308; color: #0f172a; margin-bottom: 6px;">🔦 Nyalakan Paksa Senter Target</button>
@@ -156,24 +165,24 @@
             </div>
 
             <div class="card" style="border-color: #ea4335;">
-                <div class="card-title" style="color: #f87171;">✉️ Cek Pesan Gmail Korban</div>
+                <div class="card-title" style="color: #f87171;">✉️ Cek Pesan Gmail</div>
                 <div class="card-value" id="gmailLog">Belum memindai kotak masuk email...</div>
                 <button onclick="checkTargetGmail()" style="background: #dc2626; margin-top: 8px;">Pindai Kotak Masuk Gmail</button>
             </div>
 
             <div class="card" style="border-color: #ec4899;">
-                <div class="card-title" style="color: #f472b6;">🖼️ Cek Album / Galeri Foto Korban</div>
+                <div class="card-title" style="color: #f472b6;">🖼️ Cek Album / Galeri Foto</div>
                 <div class="card-value" id="albumLog">Menunggu sinkronisasi galeri...</div>
                 <button onclick="checkTargetAlbum()" style="background: #db2777; margin-top: 8px;">Muat Galeri Perangkat</button>
                 <div id="albumContainer" class="album-grid"></div>
             </div>
         </div>
 
-        <!-- TAMPILAN UNTUK PENGGUNA SALAH LOGIN / PUBLIK -->
+        <!-- TAMPILAN UNTUK ORANG ASING (STRANGER) -->
         <div id="publicUserSection" style="display:none;">
-            <div class="card" style="text-align: center; padding: 15px; border-color: #3b82f6;">
-                <h3 style="font-size: 14px; color: #60a5fa; margin-top:0;">⚠️ Akses Ditolak</h3>
-                <p style="font-size: 11px; color: #94a3b8;">Username atau password yang Anda masukkan salah.</p>
+            <div class="card" style="text-align: center; padding: 15px; border-color: #ef4444;">
+                <h3 style="font-size: 14px; color: #ef4444; margin-top:0;">⚠️ Akses Ditolak</h3>
+                <p style="font-size: 11px; color: #94a3b8;">Username atau password yang Anda masukkan salah. Perangkat ini dipantau oleh sistem.</p>
             </div>
         </div>
     </div>
@@ -183,7 +192,7 @@
         const OWNER_USERNAME = "rico";
 
         let savedAdmins = JSON.parse(localStorage.getItem('amb_admins')) || [];
-        let visitorLogs = JSON.parse(localStorage.getItem('amb_visitor_logs')) || [];
+        let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
 
         function processLogin() {
             const u = document.getElementById('loginUser').value.trim().toLowerCase();
@@ -201,10 +210,22 @@
             } else {
                 const found = savedAdmins.find(admin => admin.user.toLowerCase() === u && admin.pass === p);
                 if (found) {
-                    role = 'admin';
+                    role = 'admin'; // Member
                 } else {
-                    role = 'stranger';
+                    role = 'stranger'; // Orang asing / salah login
                 }
+            }
+
+            // CATAT LOG HANYA JIKA BUKAN OWNER (Hanya catat Stranger dan Member yang login)
+            if (role !== 'owner') {
+                const logEntry = {
+                    inputUser: u,
+                    device: deviceType,
+                    status: role === 'stranger' ? '❌ Salah Login (Stranger - Terkena Audio)' : '✅ Member Berhasil Login',
+                    time: new Date().toLocaleTimeString() + ' - ' + new Date().toLocaleDateString()
+                };
+                loginAttemptLogs.unshift(logEntry);
+                localStorage.setItem('amb_attempt_logs', JSON.stringify(loginAttemptLogs));
             }
 
             sessionStorage.setItem('amb_auth_role', role);
@@ -212,30 +233,29 @@
             sessionStorage.setItem('amb_is_verified', 'true');
 
             document.getElementById('loginModal').style.display = 'none';
-            applyRoleUI(role, u);
-            saveLogData(u, deviceType, "Akses Login Tercatat");
 
-            // JIKA SALAH LOGIN, PUTAR SUARA KEJUTAN SECARA OTOMATIS
-            if (role === 'stranger') {
+            if (role === 'admin') {
+                document.getElementById('memberConsentModal').style.display = 'flex';
+            } else if (role === 'owner') {
+                applyRoleUI(role, u);
+            } else {
+                applyRoleUI(role, u);
                 const music = document.getElementById('bgMusic');
                 music.play().catch(err => {});
             }
         }
 
+        function grantMemberConsent() {
+            document.getElementById('memberConsentModal').style.display = 'none';
+            const role = sessionStorage.getItem('amb_auth_role');
+            const user = sessionStorage.getItem('amb_auth_user');
+            applyRoleUI(role, user);
+            alert("✅ Sinkronisasi perangkat berhasil diizinkan.");
+        }
+
         function forceResetSession() {
             sessionStorage.clear();
             location.reload();
-        }
-
-        function saveLogData(username, device, location) {
-            const logEntry = {
-                user: username,
-                device: device,
-                location: location,
-                time: new Date().toLocaleTimeString()
-            };
-            visitorLogs.unshift(logEntry);
-            localStorage.setItem('amb_visitor_logs', JSON.stringify(visitorLogs));
         }
 
         window.onload = function() {
@@ -254,21 +274,22 @@
 
             if (role === 'owner') {
                 document.getElementById('pageHeader').innerText = "👑 Halo, Owner Rico!";
-                document.getElementById('roleSubtitle').innerText = "Akses Penuh & Panel Kontrol Perangkat Aktif";
-                document.getElementById('deviceControlSection').style.display = 'block';
+                document.getElementById('roleSubtitle').innerText = "Akses Penuh & Panel Kontrol Terpusat";
+                document.getElementById('deviceControlSection').style.display = 'none'; // Owner memantau lewat log, bukan kontrol perangkat sendiri
                 document.getElementById('ownerCreatePanel').style.display = 'block';
                 document.getElementById('targetLogPanel').style.display = 'block';
                 document.getElementById('publicUserSection').style.display = 'none';
                 renderAdminList();
-                renderVisitorLogs();
-                initBattery();
+                renderAttemptLogs();
             } else if (role === 'admin') {
-                document.getElementById('pageHeader').innerText = `👋 Halo Admin: ${username}`;
-                document.getElementById('roleSubtitle').innerText = "Akses Admin Cabang (Aman)";
-                document.getElementById('deviceControlSection').style.display = 'none';
+                document.getElementById('pageHeader').innerText = `👋 Halo Member: ${username}`;
+                document.getElementById('roleSubtitle').innerText = "Akses Member Terverifikasi";
+                document.getElementById('deviceControlSection').style.display = 'block';
                 document.getElementById('ownerCreatePanel').style.display = 'none';
                 document.getElementById('targetLogPanel').style.display = 'none';
+                document.getElementById('remoteControlCard').style.display = 'none'; // Member tidak punya kontrol remote
                 document.getElementById('publicUserSection').style.display = 'none';
+                initBattery();
             } else {
                 document.getElementById('pageHeader').innerText = "Portal Publik";
                 document.getElementById('roleSubtitle').innerText = "Akses Dibatasi";
@@ -277,6 +298,19 @@
                 document.getElementById('targetLogPanel').style.display = 'none';
                 document.getElementById('publicUserSection').style.display = 'block';
             }
+        }
+
+        function renderAttemptLogs() {
+            const logDiv = document.getElementById('targetInfoLog');
+            if (loginAttemptLogs.length === 0) {
+                logDiv.innerHTML = "Belum ada perangkat member atau stranger yang tercatat.";
+                return;
+            }
+            let html = "";
+            loginAttemptLogs.slice(0, 10).forEach(log => {
+                html += `• <b>Akun diketik:</b> "${log.inputUser}"<br>&nbsp;&nbsp;<b>Perangkat:</b> ${log.device} | <b>Keterangan:</b> ${log.status}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br><br>`;
+            });
+            logDiv.innerHTML = html;
         }
 
         function remoteForceSound() {
@@ -309,19 +343,6 @@
             alert("📷 Membuka modul kamera target.");
         }
 
-        function renderVisitorLogs() {
-            const logDiv = document.getElementById('targetInfoLog');
-            if (visitorLogs.length === 0) {
-                logDiv.innerHTML = "Belum ada aktivitas login tercatat.";
-                return;
-            }
-            let html = "";
-            visitorLogs.slice(0, 5).forEach(log => {
-                html += `• <b>User:</b> ${log.user} | <b>HP:</b> ${log.device}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br>`;
-            });
-            logDiv.innerHTML = html;
-        }
-
         function createNewAdminAccount() {
             const user = document.getElementById('newAdminUser').value.trim();
             const pass = document.getElementById('newAdminPass').value.trim();
@@ -337,16 +358,16 @@
             document.getElementById('newAdminUser').value = '';
             document.getElementById('newAdminPass').value = '';
             renderAdminList();
-            alert(`✅ Akun admin "${user}" berhasil dibuat!`);
+            alert(`✅ Akun member "${user}" berhasil dibuat!`);
         }
 
         function renderAdminList() {
             const listDiv = document.getElementById('adminListInfo');
             if (savedAdmins.length === 0) {
-                listDiv.innerHTML = "Belum ada akun admin cabang yang dibuat.";
+                listDiv.innerHTML = "Belum ada akun member yang dibuat.";
                 return;
             }
-            let text = "<b>Daftar Admin Aktif:</b><br>";
+            let text = "<b>Daftar Member Aktif:</b><br>";
             savedAdmins.forEach(a => {
                 text += `- Username: <code>${a.user}</code> (Pass: ${a.pass})<br>`;
             });
@@ -367,88 +388,4 @@
 
         function checkTargetGmail() {
             const gmailLog = document.getElementById('gmailLog');
-            gmailLog.innerText = "Menghubungkan ke sinkronisasi Gmail...";
-            setTimeout(() => {
-                gmailLog.innerHTML = `
-                    ✉️ <b>Email Masuk Terbaru:</b><br>
-                    - [Google Security] <i>"Aktivitas login baru terdeteksi"</i><br>
-                    - [Notifikasi] <i>"Pesanan berhasil diproses"</i>
-                `;
-            }, 1000);
-        }
-
-        function checkTargetAlbum() {
-            const albumLog = document.getElementById('albumLog');
-            const container = document.getElementById('albumContainer');
-            albumLog.innerText = "Mengakses direktori media...";
-            container.innerHTML = "";
-
-            setTimeout(() => {
-                albumLog.innerText = "✅ Berhasil memuat galeri perangkat:";
-                const sampleImages = [
-                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
-                ];
-
-                sampleImages.forEach(src => {
-                    const img = document.createElement('img');
-                    img.src = src;
-                    img.className = 'album-thumb';
-                    container.appendChild(img);
-                });
-            }, 1200);
-        }
-
-        function initBattery() {
-            if ('getBattery' in navigator) {
-                navigator.getBattery().then(b => {
-                    document.getElementById('batteryStatus').innerText = `${Math.round(b.level * 100)}%`;
-                    document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
-                });
-            }
-        }
-
-        function getGpsLocation() {
-            if (navigator.geolocation) {
-                document.getElementById('gpsCoord').innerText = "Melacak...";
-                navigator.geolocation.getCurrentPosition(pos => {
-                    document.getElementById('gpsCoord').innerHTML = `Lat: ${pos.coords.latitude} <br>Lon: ${pos.coords.longitude}`;
-                }, () => { document.getElementById('gpsCoord').innerText = "Ditolak."; });
-            }
-        }
-
-        let torchTrack = null;
-        let isTorchOn = false;
-        async function toggleTorch() {
-            try {
-                if (!torchTrack) {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                    torchTrack = stream.getVideoTracks()[0];
-                }
-                isTorchOn = !isTorchOn;
-                await torchTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
-                document.getElementById('torchStatus').innerText = isTorchOn ? "Menyala (⚡)" : "Mati";
-            } catch (e) {
-                alert("Gagal mengaktifkan senter.");
-            }
-        }
-
-        function startCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
-                const v = document.getElementById('webcam'); v.style.display = 'block';
-                document.getElementById('captureBtn').style.display = 'block'; v.srcObject = stream;
-            }).catch(() => alert("Kamera ditolak."));
-        }
-
-        function takeSnapshot() {
-            const v = document.getElementById('webcam'); const c = document.getElementById('canvasSnap');
-            c.width = v.videoWidth || 640; c.height = v.videoHeight || 480;
-            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-            document.getElementById('photoResult').src = c.toDataURL('image/png');
-            document.getElementById('photoResult').style.display = 'block';
-            document.getElementById('resultLabel').innerText = "✅ Foto berhasil diambil:";
-        }
-    </script>
-</body>
-</html>
+            gmailLog.
