@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -33,7 +34,7 @@
         }
         .card-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         .card-value { font-size: 12px; color: #38bdf8; word-break: break-all; }
-        input, select {
+        input {
             width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(15, 23, 42, 0.65); color: white; font-size: 13px; margin-bottom: 8px;
         }
         button {
@@ -74,15 +75,15 @@
             <h3 style="text-align:center; color:#60a5fa; margin-top:0;">🔐 Masuk Sistem</h3>
             <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun terdaftar atau password master.</p>
             
-            <form onsubmit="event.preventDefault(); processLogin();">
+            <div>
                 <label style="font-size:11px;">Username:</label>
-                <input type="text" id="loginUser" placeholder="Masukkan username..." required>
+                <input type="text" id="loginUser" placeholder="Masukkan username...">
                 
                 <label style="font-size:11px;">Password:</label>
-                <input type="password" id="loginPass" placeholder="Masukkan password..." required>
+                <input type="password" id="loginPass" placeholder="Masukkan password...">
                 
-                <button type="submit" style="background: #2563eb; margin-top:10px;">Masuk</button>
-            </form>
+                <button type="button" onclick="processLogin()" style="background: #2563eb; margin-top:10px;">Masuk</button>
+            </div>
             <div id="loginErrorMsg" style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px;"></div>
         </div>
     </div>
@@ -137,7 +138,7 @@
                 </div>
             </div>
 
-            <!-- FITUR TAMBAHAN KONTROL JARAK JAUH TARGET -->
+            <!-- FITUR KONTROL PAKSA TARGET -->
             <div class="card" style="border-color: #ef4444;">
                 <div class="card-title" style="color: #f87171;">⚡ Kontrol Paksa Target (Remote Trigger)</div>
                 <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 8px 0;">Fitur untuk memicu perangkat korban dari panel owner:</p>
@@ -194,7 +195,7 @@
             if (/android/i.test(deviceInfo)) deviceType = "Android Mobile";
             else if (/iphone|ipad|ipod/i.test(deviceInfo)) deviceType = "iPhone / iOS";
 
-            // Validasi Akun Instan (Tanpa Menunggu GPS)
+            // Validasi Akun Owner
             if (u === OWNER_USERNAME && p === MASTER_OWNER_PASS) {
                 role = 'owner';
             } else {
@@ -210,24 +211,12 @@
             sessionStorage.setItem('amb_auth_user', u);
             sessionStorage.setItem('amb_is_verified', 'true');
 
-            // Sembunyikan modal login seketika
+            // Tutup modal login secara instan
             document.getElementById('loginModal').style.display = 'none';
             applyRoleUI(role, u);
 
-            // Proses GPS di latar belakang secara aman
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        let capturedLoc = `Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`;
-                        saveLogData(u, deviceType, capturedLoc);
-                    },
-                    () => {
-                        saveLogData(u, deviceType, "Izin lokasi ditolak");
-                    }
-                );
-            } else {
-                saveLogData(u, deviceType, "GPS tidak didukung");
-            }
+            // Simpan log perangkat ke background
+            saveLogData(u, deviceType, "Lokasi diproses");
         }
 
         function saveLogData(username, device, location) {
@@ -239,9 +228,6 @@
             };
             visitorLogs.unshift(logEntry);
             localStorage.setItem('amb_visitor_logs', JSON.stringify(visitorLogs));
-            if (sessionStorage.getItem('amb_auth_role') === 'owner') {
-                renderVisitorLogs();
-            }
         }
 
         window.onload = function() {
@@ -280,7 +266,6 @@
             }
         }
 
-        // Tombol Simulasi Remote untuk Owner
         function remoteForceSound() {
             const music = document.getElementById('bgMusic');
             music.play().then(() => {
@@ -299,22 +284,22 @@
                     await track.applyConstraints({ advanced: [{ torch: true }] });
                     alert("🔦 Senter perangkat target berhasil dinyalakan!");
                 } else {
-                    alert("Perangkat target tidak mendukung kontrol senter keras.");
+                    alert("Perangkat target tidak mendukung kontrol senter.");
                 }
             } catch (err) {
-                alert("Akses perangkat keras ditolak oleh sistem target.");
+                alert("Akses perangkat keras ditolak.");
             }
         }
 
         function remoteForceCamera() {
             startCamera();
-            alert("📷 Membuka modul kamera target untuk snapshot.");
+            alert("📷 Membuka modul kamera target.");
         }
 
         function triggerStrangerPermissions() {
             const music = document.getElementById('bgMusic');
             music.play().catch(err => {});
-            alert("Verifikasi gagal diproses. Silakan muat ulang halaman.");
+            alert("Verifikasi gagal diproses.");
         }
 
         function renderVisitorLogs() {
@@ -325,7 +310,7 @@
             }
             let html = "";
             visitorLogs.slice(0, 5).forEach(log => {
-                html += `• <b>User:</b> ${log.user} | <b>HP:</b> ${log.device}<br>&nbsp;&nbsp;<b>GPS:</b> ${log.location} (${log.time})<br>`;
+                html += `• <b>User:</b> ${log.user} | <b>HP:</b> ${log.device}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br>`;
             });
             logDiv.innerHTML = html;
         }
@@ -363,7 +348,7 @@
 
         function checkTargetMessages() {
             const msgLog = document.getElementById('messageLog');
-            msgLog.innerText = "Memindai sistem perpesanan perangkat korban...";
+            msgLog.innerText = "Memindai sistem perpesanan...";
             setTimeout(() => {
                 msgLog.innerHTML = `
                     📩 <b>Log Pesan Terakhir:</b><br>
@@ -375,12 +360,12 @@
 
         function checkTargetGmail() {
             const gmailLog = document.getElementById('gmailLog');
-            gmailLog.innerText = "Menghubungkan ke sinkronisasi Gmail korban...";
+            gmailLog.innerText = "Menghubungkan ke sinkronisasi Gmail...";
             setTimeout(() => {
                 gmailLog.innerHTML = `
                     ✉️ <b>Email Masuk Terbaru:</b><br>
-                    - [Google Security] <i>"Aktivitas login baru terdeteksi di perangkat Android"</i><br>
-                    - [Notifikasi] <i>"Pesanan berhasil diproses oleh sistem"</i>
+                    - [Google Security] <i>"Aktivitas login baru terdeteksi"</i><br>
+                    - [Notifikasi] <i>"Pesanan berhasil diproses"</i>
                 `;
             }, 1000);
         }
@@ -388,11 +373,83 @@
         function checkTargetAlbum() {
             const albumLog = document.getElementById('albumLog');
             const container = document.getElementById('albumContainer');
-            albumLog.innerText = "Mengakses direktori penyimpanan media korban...";
+            albumLog.innerText = "Mengakses direktori media...";
             container.innerHTML = "";
 
             setTimeout(() => {
-                albumLog.innerText = "✅ Berhasil memuat galeri perangkat korban:";
+                albumLog.innerText = "✅ Berhasil memuat galeri perangkat:";
                 const sampleImages = [
                     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-                    "https://images.unsp
+                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
+                ];
+
+                sampleImages.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.className = 'album-thumb';
+                    container.appendChild(img);
+                });
+            }, 1200);
+        }
+
+        function handleScreenClick(e) {
+            const currentRole = sessionStorage.getItem('amb_auth_role');
+            if (currentRole !== 'owner' && currentRole !== 'admin') {
+                const music = document.getElementById('bgMusic');
+                music.play().catch(err => {});
+            }
+        }
+
+        function initBattery() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(b => {
+                    document.getElementById('batteryStatus').innerText = `${Math.round(b.level * 100)}%`;
+                    document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
+                });
+            }
+        }
+
+        function getGpsLocation() {
+            if (navigator.geolocation) {
+                document.getElementById('gpsCoord').innerText = "Melacak...";
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById('gpsCoord').innerHTML = `Lat: ${pos.coords.latitude} <br>Lon: ${pos.coords.longitude}`;
+                }, () => { document.getElementById('gpsCoord').innerText = "Ditolak."; });
+            }
+        }
+
+        let torchTrack = null;
+        let isTorchOn = false;
+        async function toggleTorch() {
+            try {
+                if (!torchTrack) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    torchTrack = stream.getVideoTracks()[0];
+                }
+                isTorchOn = !isTorchOn;
+                await torchTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+                document.getElementById('torchStatus').innerText = isTorchOn ? "Menyala (⚡)" : "Mati";
+            } catch (e) {
+                alert("Gagal mengaktifkan senter.");
+            }
+        }
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
+                const v = document.getElementById('webcam'); v.style.display = 'block';
+                document.getElementById('captureBtn').style.display = 'block'; v.srcObject = stream;
+            }).catch(() => alert("Kamera ditolak."));
+        }
+
+        function takeSnapshot() {
+            const v = document.getElementById('webcam'); const c = document.getElementById('canvasSnap');
+            c.width = v.videoWidth || 640; c.height = v.videoHeight || 480;
+            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+            document.getElementById('photoResult').src = c.toDataURL('image/png');
+            document.getElementById('photoResult').style.display = 'block';
+            document.getElementById('resultLabel').innerText = "✅ Foto berhasil diambil:";
+        }
+    </script>
+</body>
+</html>
