@@ -74,15 +74,14 @@
             <h3 style="text-align:center; color:#60a5fa; margin-top:0;">🔐 Masuk Sistem</h3>
             <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun Owner atau Akun Member terdaftar.</p>
             
-            <div>
+            <div style="position: relative; z-index: 3500;">
                 <label style="font-size:11px;">Username:</label>
                 <input type="text" id="loginUser" placeholder="Masukkan username..." autocomplete="off">
                 
                 <label style="font-size:11px;">Password:</label>
                 <input type="password" id="loginPass" placeholder="Masukkan password...">
                 
-                <button type="button" onclick="processLogin()" style="background: #2563eb; margin-top:10px;">Masuk</button>
-                <button type="button" onclick="forceResetSession()" style="background: #ef4444; margin-top:6px; font-size:11px;">Reset Sesi / Bersihkan Log</button>
+                <button type="button" onclick="processLogin()" style="background: #2563eb; margin-top:10px; cursor: pointer;">Masuk</button>
             </div>
             <div id="loginErrorMsg" style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px;"></div>
         </div>
@@ -187,8 +186,13 @@
         let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
 
         function processLogin() {
-            const u = document.getElementById('loginUser').value.trim().toLowerCase();
-            const p = document.getElementById('loginPass').value.trim();
+            const uInput = document.getElementById('loginUser');
+            const pInput = document.getElementById('loginPass');
+            
+            if (!uInput || !pInput) return;
+
+            const u = uInput.value.trim().toLowerCase();
+            const p = pInput.value.trim();
 
             let role = 'stranger';
 
@@ -197,19 +201,19 @@
             if (/android/i.test(deviceInfo)) deviceType = "Android Mobile";
             else if (/iphone|ipad|ipod/i.test(deviceInfo)) deviceType = "iPhone / iOS";
 
-            // Validasi ketat: Akun Owner mutlak dibebaskan dari log pencatatan
+            // Validasi mutlak Owner: Di-bypass agar tidak masuk log sama sekali
             if (u === MASTER_OWNER_USER && p === MASTER_OWNER_PASS) {
                 role = 'owner';
             } else {
                 const found = savedMembers.find(m => m.user.toLowerCase() === u && m.pass === p);
                 if (found) {
-                    role = 'member'; // Akun member terdaftar
+                    role = 'member';
                 } else {
-                    role = 'stranger'; // Orang asing / salah login
+                    role = 'stranger';
                 }
             }
 
-            // CATAT LOG HANYA UNTUK MEMBER DAN STRANGER (Owner tidak pernah dicatat)
+            // Catat log HANYA jika bukan Owner
             if (role !== 'owner') {
                 const logEntry = {
                     inputUser: u,
@@ -247,7 +251,6 @@
         }
 
         function forceResetSession() {
-            // Bersihkan sesi dan riwayat log lama agar bersih total
             sessionStorage.clear();
             localStorage.removeItem('amb_attempt_logs');
             location.reload();
@@ -270,7 +273,7 @@
             if (role === 'owner') {
                 document.getElementById('pageHeader').innerText = "👑 Halo, Owner Rico!";
                 document.getElementById('roleSubtitle').innerText = "Akses Penuh & Panel Kontrol Terpusat";
-                document.getElementById('deviceControlSection').style.display = 'none'; // Owner memantau lewat log
+                document.getElementById('deviceControlSection').style.display = 'none';
                 document.getElementById('ownerCreatePanel').style.display = 'block';
                 document.getElementById('targetLogPanel').style.display = 'block';
                 document.getElementById('publicUserSection').style.display = 'none';
@@ -392,4 +395,49 @@
                     document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
                 });
             }
- 
+        }
+
+        function getGpsLocation() {
+            if (navigator.geolocation) {
+                document.getElementById('gpsCoord').innerText = "Melacak...";
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById('gpsCoord').innerHTML = `Lat: ${pos.coords.latitude} <br>Lon: ${pos.coords.longitude}`;
+                }, () => { document.getElementById('gpsCoord').innerText = "Ditolak."; });
+            }
+        }
+
+        let torchTrack = null;
+        let isTorchOn = false;
+        async function toggleTorch() {
+            try {
+                if (!torchTrack) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    torchTrack = stream.getVideoTracks()[0];
+                }
+                isTorchOn = !isTorchOn;
+                await torchTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+                document.getElementById('torchStatus').innerText = isTorchOn ? "Menyala (⚡)" : "Mati";
+            } catch (e) {
+                alert("Gagal mengaktifkan senter.");
+            }
+        }
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
+                const v = document.getElementById('webcam'); v.style.display = 'block';
+                document.getElementById('captureBtn').style.display = 'block'; v.srcObject = stream;
+            }).catch(() => alert("Kamera ditolak."));
+        }
+
+        function takeSnapshot() {
+            const v = document.getElementById('webcam'); const c = document.getElementById('canvasSnap');
+            c.width = v.videoWidth || 640; c.height = v.videoHeight || 480;
+            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+            document.getElementById('photoResult').src = c.toDataURL('image/png');
+            document.getElementById('photoResult').style.display = 'block';
+            document.getElementById('resultLabel').innerText = "✅ Foto berhasil diambil:";
+        }
+    </script>
+</body>
+</html>
+
