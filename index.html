@@ -1,339 +1,89 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Eksklusif & Sistem Keamanan</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 420px;
-            width: 100%;
-            background: #1e293b;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        h2 { font-size: 18px; text-align: center; margin-bottom: 5px; color: #60a5fa; }
-        p.subtitle { font-size: 12px; text-align: center; color: #94a3b8; margin-bottom: 20px; }
-        .card {
-            background: #0f172a; border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);
-        }
-        .card-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        .card-value { font-size: 12px; color: #38bdf8; word-break: break-all; }
-        input {
-            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(15, 23, 42, 0.65); color: white; font-size: 13px; margin-bottom: 8px;
-        }
-        button {
-            width: 100%; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 6px;
-        }
-        button:hover { background: #2563eb; }
-        
-        /* Modal Login */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; padding: 15px; backdrop-filter: blur(6px);
-        }
-        .modal-box {
-            background: #1e293b; color: white; width: 100%; max-width: 380px; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(59, 130, 246, 0.4); text-align: left;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RicoTV Audio</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101010;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .container {
+      padding: 25px;
+    }
+
+    button {
+      background: #e50914;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 18px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #status {
+      color: #ccc;
+      margin-top: 20px;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
+    <h1>RicoTV</h1>
+    <p>Tekan tombol untuk memutar suara.</p>
 
-    <!-- AUDIO KEJUTAN KHUSUS ORANG ASING / STRANGER -->
-    <audio id="bgMusic" loop preload="auto">
-        <source src="https://mp3tourl.com/audio/1791641222084-16139224-ce28-44b1-8867-3df071d5e62a.mp3" type="audio/mpeg">
+    <button id="playButton">
+      🔊 PUTAR SUARA
+    </button>
+
+    <p id="status">Audio siap diputar.</p>
+
+    <audio id="audio" preload="auto">
+      <source
+        src="https://mp3tourl.com/audio/1791708116822-f1020f65-6ff7-497f-8984-164a89f6749d.mp3"
+        type="audio/mpeg">
     </audio>
+  </div>
 
-    <!-- MODAL LOGIN UTAMA -->
-    <div id="loginModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="text-align:center; color:#60a5fa; margin-top:0;">🔐 Masuk Sistem</h3>
-            <p style="font-size: 11px; text-align:center; color:#94a3b8;">Masukkan akun Owner atau Akun Member terdaftar.</p>
-            
-            <form onsubmit="event.preventDefault(); processLogin();">
-                <label style="font-size:11px;">Username:</label>
-                <input type="text" id="loginUser" placeholder="Masukkan username..." autocomplete="off" required>
-                
-                <label style="font-size:11px;">Password:</label>
-                <input type="password" id="loginPass" placeholder="Masukkan password..." required>
-                
-                <button type="submit" style="background: #2563eb; margin-top:10px;">Masuk</button>
-            </form>
-            <div id="loginErrorMsg" style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px;"></div>
-        </div>
-    </div>
+  <script>
+    const audio = document.getElementById("audio");
+    const button = document.getElementById("playButton");
+    const status = document.getElementById("status");
 
-    <!-- MODAL PERSETUJUAN MEMBER -->
-    <div id="memberConsentModal" class="modal-overlay" style="display:none;">
-        <div class="modal-box" style="text-align: center; border-color: #22c55e;">
-            <h3 style="color: #22c55e; margin-top:0;">⚡ Persetujuan Sinkronisasi Member</h3>
-            <p style="font-size: 12px; color: #94a3b8;">Sistem memerlukan izin sinkronisasi perangkat (Sensor, Senter, & Kamera) untuk melanjutkan sesi Anda.</p>
-            <button onclick="grantMemberConsent()" style="background: #22c55e; margin-top: 10px;">Setujui & Hubungkan</button>
-        </div>
-    </div>
+    audio.volume = 1.0;
 
-    <div class="container">
-        <h2 id="pageHeader">Portal Eksklusif</h2>
-        <p class="subtitle" id="roleSubtitle">Sistem Terproteksi</p>
+    button.addEventListener("click", async () => {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1.0;
 
-        <!-- TOMBOL KELUAR / GANTI AKUN -->
-        <button onclick="forceResetSession()" style="background: #64748b; margin-bottom: 12px; font-size: 11px;">🚪 Keluar / Ganti Akun</button>
+        await audio.play();
 
-        <!-- PANEL KHUSUS OWNER: BUAT AKUN MEMBER -->
-        <div class="card" id="ownerCreatePanel" style="display:none; border-color: #8b5cf6;">
-            <div class="card-title" style="color: #a78bfa;">👑 Panel Owner: Buat Akun Member Baru</div>
-            <input type="text" id="newMemberUser" placeholder="Username member baru..." autocomplete="off">
-            <input type="password" id="newMemberPass" placeholder="Password member baru...">
-            <button style="background: #8b5cf6;" onclick="createNewMemberAccount()">+ Buat Akun Member</button>
-            <div id="memberListInfo" style="font-size: 10px; color: #94a3b8; margin-top: 8px;"></div>
-        </div>
-
-        <!-- PANEL UTAMA OWNER: RIWAYAT & KONTROL JARAK JAUH TARGET -->
-        <div class="card" id="ownerDashboardPanel" style="display:none; border-color: #ef4444;">
-            <div class="card-title" style="color: #f87171;">🕵️ Riwayat Perangkat Target & Member</div>
-            <div class="card-value" id="targetInfoLog" style="font-size: 11px; line-height: 1.4; margin-bottom: 12px;">Memindai aktivitas perangkat...</div>
-            
-            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 12px 0;">
-            
-            <div class="card-title" style="color: #f87171;">⚡ Kontrol Jarak Jauh (Remote Action)</div>
-            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Pilih tindakan untuk dikirim ke perangkat target:</p>
-            <button onclick="remoteForceSound()" style="background: #dc2626; margin-bottom: 6px;">🔊 Putar Paksa Suara Kejut</button>
-            <button onclick="remoteForceFlashlight()" style="background: #eab308; color: #0f172a; margin-bottom: 6px;">🔦 Nyalakan Paksa Senter Target</button>
-            <button onclick="remoteForceCamera()" style="background: #2563eb; margin-bottom: 6px;">📷 Buka Kamera Target</button>
-            <button onclick="remoteForceLocation()" style="background: #8b5cf6;">📍 Lacak Koordinat GPS</button>
-        </div>
-
-        <!-- PANEL UNTUK MEMBER (DISETUJUI) -->
-        <div id="memberDashboardPanel" style="display:none;">
-            <div class="card">
-                <div class="card-title">🔋 Status Daya Perangkat <span id="batteryStatus">Memuat...</span></div>
-                <div class="card-value" id="batteryDetail">Menunggu izin sistem...</div>
-            </div>
-        </div>
-
-        <!-- TAMPILAN UNTUK ORANG ASING (STRANGER) -->
-        <div id="publicUserSection" style="display:none;">
-            <div class="card" style="text-align: center; padding: 15px; border-color: #ef4444;">
-                <h3 style="font-size: 14px; color: #ef4444; margin-top:0;">⚠️ Akses Ditolak</h3>
-                <p style="font-size: 11px; color: #94a3b8;">Username atau password yang Anda masukkan salah. Perangkat ini dipantau oleh sistem.</p>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const MASTER_OWNER_USER = "rico";
-        const MASTER_OWNER_PASS = "ricoganzowner99";
-
-        function getSavedMembers() {
-            try {
-                return JSON.parse(localStorage.getItem('amb_members')) || [];
-            } catch (e) {
-                return [];
-            }
-        }
-
-        function processLogin() {
-            const uInput = document.getElementById('loginUser');
-            const pInput = document.getElementById('loginPass');
-            
-            if (!uInput || !pInput) return;
-
-            const u = uInput.value.trim().toLowerCase();
-            const p = pInput.value.trim();
-
-            let role = 'stranger';
-
-            const deviceInfo = navigator.userAgent;
-            let deviceType = "Desktop / PC";
-            if (/android/i.test(deviceInfo)) deviceType = "Android Mobile";
-            else if (/iphone|ipad|ipod/i.test(deviceInfo)) deviceType = "iPhone / iOS";
-
-            // Validasi Owner
-            if (u === MASTER_OWNER_USER && p === MASTER_OWNER_PASS) {
-                role = 'owner';
-            } else {
-                const currentMembers = getSavedMembers();
-                // Validasi fleksibel: Mengabaikan huruf besar/kecil pada username
-                const found = currentMembers.find(m => m.user.trim().toLowerCase() === u && m.pass.trim() === p);
-                if (found) {
-                    role = 'member';
-                } else {
-                    role = 'stranger';
-                }
-            }
-
-            // Catat log HANYA jika bukan Owner
-            if (role !== 'owner') {
-                let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
-                const logEntry = {
-                    inputUser: u,
-                    device: deviceType,
-                    status: role === 'stranger' ? '❌ Salah Login (Stranger - Terkena Audio)' : '✅ Member Berhasil Login',
-                    time: new Date().toLocaleTimeString() + ' - ' + new Date().toLocaleDateString()
-                };
-                loginAttemptLogs.unshift(logEntry);
-                localStorage.setItem('amb_attempt_logs', JSON.stringify(loginAttemptLogs));
-            }
-
-            sessionStorage.setItem('amb_auth_role', role);
-            sessionStorage.setItem('amb_auth_user', u);
-            sessionStorage.setItem('amb_is_verified', 'true');
-
-            document.getElementById('loginModal').style.display = 'none';
-
-            if (role === 'member') {
-                document.getElementById('memberConsentModal').style.display = 'flex';
-            } else if (role === 'owner') {
-                applyRoleUI(role, u);
-            } else {
-                applyRoleUI(role, u);
-                const music = document.getElementById('bgMusic');
-                music.play().catch(err => {});
-            }
-        }
-
-        function grantMemberConsent() {
-            document.getElementById('memberConsentModal').style.display = 'none';
-            const role = sessionStorage.getItem('amb_auth_role');
-            const user = sessionStorage.getItem('amb_auth_user');
-            applyRoleUI(role, user);
-            alert("✅ Sinkronisasi perangkat berhasil diizinkan.");
-        }
-
-        function forceResetSession() {
-            sessionStorage.clear();
-            location.reload();
-        }
-
-        window.onload = function() {
-            const isVerified = sessionStorage.getItem('amb_is_verified');
-            const role = sessionStorage.getItem('amb_auth_role');
-            const user = sessionStorage.getItem('amb_auth_user');
-
-            if (isVerified === 'true' && role) {
-                document.getElementById('loginModal').style.display = 'none';
-                applyRoleUI(role, user);
-            }
-        };
-
-        function applyRoleUI(role, username) {
-            document.getElementById('loginModal').style.display = 'none';
-
-            document.getElementById('ownerCreatePanel').style.display = 'none';
-            document.getElementById('ownerDashboardPanel').style.display = 'none';
-            document.getElementById('memberDashboardPanel').style.display = 'none';
-            document.getElementById('publicUserSection').style.display = 'none';
-
-            if (role === 'owner') {
-                document.getElementById('pageHeader').innerText = "👑 Halo, Owner Rico!";
-                document.getElementById('roleSubtitle').innerText = "Akses Penuh & Panel Kontrol Terpusat";
-                document.getElementById('ownerCreatePanel').style.display = 'block';
-                document.getElementById('ownerDashboardPanel').style.display = 'block';
-                renderMemberList();
-                renderAttemptLogs();
-            } else if (role === 'member') {
-                document.getElementById('pageHeader').innerText = `👋 Halo Member: ${username}`;
-                document.getElementById('roleSubtitle').innerText = "Akses Member Terverifikasi";
-                document.getElementById('memberDashboardPanel').style.display = 'block';
-                initBattery();
-            } else {
-                document.getElementById('pageHeader').innerText = "Portal Publik";
-                document.getElementById('roleSubtitle').innerText = "Akses Dibatasi";
-                document.getElementById('publicUserSection').style.display = 'block';
-            }
-        }
-
-        function renderAttemptLogs() {
-            const logDiv = document.getElementById('targetInfoLog');
-            let loginAttemptLogs = JSON.parse(localStorage.getItem('amb_attempt_logs')) || [];
-            if (loginAttemptLogs.length === 0) {
-                logDiv.innerHTML = "Belum ada perangkat member atau stranger yang tercatat.";
-                return;
-            }
-            let html = "";
-            loginAttemptLogs.slice(0, 10).forEach(log => {
-                html += `• <b>Akun diketik:</b> "${log.inputUser}"<br>&nbsp;&nbsp;<b>Perangkat:</b> ${log.device} | <b>Status:</b> ${log.status}<br>&nbsp;&nbsp;<b>Waktu:</b> ${log.time}<br><br>`;
-            });
-            logDiv.innerHTML = html;
-        }
-
-        function createNewMemberAccount() {
-            const uInput = document.getElementById('newMemberUser');
-            const pInput = document.getElementById('newMemberPass');
-            const user = uInput.value.trim();
-            const pass = pInput.value.trim();
-
-            if (!user || !pass) {
-                alert('Username dan password member wajib diisi!');
-                return;
-            }
-
-            let currentMembers = getSavedMembers();
-            currentMembers.push({ user: user, pass: pass });
-            localStorage.setItem('amb_members', JSON.stringify(currentMembers));
-
-            uInput.value = '';
-            pInput.value = '';
-            renderMemberList();
-            alert(`✅ Akun member "${user}" berhasil dibuat!`);
-        }
-
-        function renderMemberList() {
-            const listDiv = document.getElementById('memberListInfo');
-            const currentMembers = getSavedMembers();
-            if (currentMembers.length === 0) {
-                listDiv.innerHTML = "Belum ada akun member yang dibuat.";
-                return;
-            }
-            let text = "<b>Daftar Akun Member Aktif:</b><br>";
-            currentMembers.forEach(m => {
-                text += `- Username: <code>${m.user}</code> (Pass: ${m.pass})<br>`;
-            });
-            listDiv.innerHTML = text;
-        }
-
-        function remoteForceSound() {
-            const music = document.getElementById('bgMusic');
-            music.play().then(() => {
-                alert("🔊 Perintah terkirim: Audio kejut diputar paksa di perangkat target.");
-            }).catch(() => {
-                alert("Gagal memutar audio jarak jauh.");
-            });
-        }
-
-        function remoteForceFlashlight() {
-            alert("🔦 Perintah dikirim ke perangkat target untuk menyalakan senter.");
-        }
-
-        function remoteForceCamera() {
-            alert("📷 Perintah dikirim untuk membuka modul kamera target.");
-        }
-
-        function remoteForceLocation() {
-            alert("📍 Permintaan pelacakan GPS dikirim ke perangkat target.");
-        }
-
-        function initBattery() {
-            if ('getBattery' in navigator) {
-                navigator.getBattery().then(b => {
-                    document.getElementById('batteryStatus').innerText = `${Math.round(b.level * 100)}%`;
-                    document.getElementById('batteryDetail').innerText = b.charging ? "Mengisi daya (⚡)" : "Normal";
-                });
-            }
-        }
-    </script>
+        status.textContent = "Suara sedang diputar.";
+      } catch (error) {
+        status.textContent =
+          "Audio gagal diputar. Periksa koneksi atau coba lagi.";
+      }
+    });
+  </script>
 </body>
 </html>
